@@ -130,16 +130,16 @@
 
             if (idsValidos.has(idInput)) {
                 if (idsUsados.has(idInput)) {
-                    output.innerHTML = INVALIDO: El ID "${idInput}" ya fue usado.;
+                    output.innerHTML = `INVALIDO: El ID "${idInput}" ya fue usado.`;
                     output.className = "output used";
                 } else {
-                    output.innerHTML = VALIDO: El ID "${idInput}" es aceptado.;
+                    output.innerHTML = `VALIDO: El ID "${idInput}" es aceptado.`;
                     output.className = "output valid";
                     idsUsados.add(idInput); // Agregar el ID a los usados
                     localStorage.setItem("idsUsados", JSON.stringify(Array.from(idsUsados))); // Guardar en LocalStorage
                 }
             } else {
-                output.innerHTML = NO VALIDO: El ID "${idInput}" no está en la lista.;
+                output.innerHTML = `NO VALIDO: El ID "${idInput}" no está en la lista.`;
                 output.className = "output invalid";
             }
         }
@@ -155,3 +155,4 @@
     </script>
 </body>
 </html>
+
