@@ -59,6 +59,28 @@
     <button onclick="verificarID()">Verificar</button>
     <div class="output" id="output"></div>
 
+    <!-- Scripts de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js"></script>
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBk0Oi4hO69hIWaGU2vJuHK4LkrE2O88lY",
+            authDomain: "acceso-festival.firebaseapp.com",
+            databaseURL: "https://acceso-festival-default-rtdb.firebaseio.com",
+            projectId: "acceso-festival",
+            storageBucket: "acceso-festival.firebasestorage.app",
+            messagingSenderId: "234309715559",
+            appId: "1:234309715559:web:0f870f0db42a4c5c68b6c2",
+            measurementId: "G-K9Y46F65S4"
+        };
+
+        // Inicializa Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+    </script>
+
+    <!-- Script principal con tu lógica -->
     <script>
         // Lista de 500 IDs válidos
         const idsValidos = new Set([
@@ -115,8 +137,8 @@
 
         ]);
 
-        // Cargar IDs usados desde LocalStorage o iniciar como un conjunto vacío
-        const idsUsados = new Set(JSON.parse(localStorage.getItem("idsUsados")) || []);
+
+        const idsUsadosRef = db.ref("idsUsados"); // Referencia a la base de datos de Firebase
 
         function verificarID() {
             const idInput = document.getElementById("idInput").value.trim();
@@ -128,31 +150,32 @@
                 return;
             }
 
-            if (idsValidos.has(idInput)) {
-                if (idsUsados.has(idInput)) {
-                    output.innerHTML = `INVALIDO: El ID "${idInput}" ya fue usado.`;
-                    output.className = "output used";
+            idsUsadosRef.once("value").then((snapshot) => {
+                const idsUsados = snapshot.val() || {}; // Obtener datos de Firebase
+
+                if (idsValidos.has(idInput)) {
+                    if (idsUsados[idInput]) {
+                        output.innerHTML = `INVALIDO: El ID "${idInput}" ya fue usado.`;
+                        output.className = "output used";
+                    } else {
+                        output.innerHTML = `VALIDO: El ID "${idInput}" es aceptado.`;
+                        output.className = "output valid";
+                        idsUsadosRef.update({ [idInput]: true }); // Guardar el ID como usado
+                    }
                 } else {
-                    output.innerHTML = `VALIDO: El ID "${idInput}" es aceptado.`;
-                    output.className = "output valid";
-                    idsUsados.add(idInput); // Agregar el ID a los usados
-                    localStorage.setItem("idsUsados", JSON.stringify(Array.from(idsUsados))); // Guardar en LocalStorage
+                    output.innerHTML = `NO VALIDO: El ID "${idInput}" no está en la lista.`;
+                    output.className = "output invalid";
                 }
-            } else {
-                output.innerHTML = `NO VALIDO: El ID "${idInput}" no está en la lista.`;
-                output.className = "output invalid";
-            }
+            });
         }
 
         function borrarHistorial() {
-            // Eliminar el historial de IDs usados
-            idsUsados.clear();
-            localStorage.removeItem("idsUsados");
-            const output = document.getElementById("output");
-            output.innerHTML = "Historial borrado. Puedes ingresar nuevos IDs.";
-            output.className = "output";
+            idsUsadosRef.remove().then(() => {
+                const output = document.getElementById("output");
+                output.innerHTML = "Historial borrado. Puedes ingresar nuevos IDs.";
+                output.className = "output";
+            });
         }
     </script>
 </body>
 </html>
-
