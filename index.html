@@ -15,56 +15,57 @@
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
-      padding: 20px;
-      min-height: 100vh;
+      padding: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       background-color: #f8f9fa;
-      box-sizing: border-box;
+      overflow: hidden;
     }
     
     .header {
       text-align: center;
-      margin-bottom: 1.5rem;
-      width: 100%;
+      margin-bottom: 2rem;
     }
     
     h1 {
       color: #333;
       font-weight: 300;
-      font-size: clamp(1.5rem, 4vw, 2rem);
-      margin: 0;
+      letter-spacing: 1px;
     }
     
     p {
       color: #666;
-      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-      margin: 0.5rem 0 0;
     }
     
-    /* Contenedor del escáner - CUADRADO PERFECTO */
     #reader {
-      width: 90vmin; /* Ajusta al tamaño del dispositivo */
-      height: 90vmin; /* Igual que width para cuadrado */
+      width: 90%;
       max-width: 500px;
-      max-height: 500px;
+      height: 400px;
       margin: 0 auto;
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       position: relative;
-      border: 4px solid var(--primary); /* Borde verde = área de escaneo */
-      box-sizing: border-box; /* Incluye el borde en el tamaño total */
     }
     
-    /* Ocultamos el pseudo-elemento ::after (ahora el borde real define el área) */
+    /* Estilo para el cuadro de escaneo */
     #reader::after {
-      display: none;
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 60%;
+      border: 4px solid var(--primary);
+      border-radius: 8px;
+      box-sizing: border-box;
+      pointer-events: none;
     }
     
-    /* Estilos para el resultado */
     #result-container {
       position: fixed;
       top: 0;
@@ -81,7 +82,7 @@
     }
     
     #result {
-      font-size: clamp(3rem, 10vw, 5rem);
+      font-size: 5rem;
       font-weight: bold;
       color: var(--primary);
       text-align: center;
@@ -89,7 +90,7 @@
     }
     
     .checkmark {
-      font-size: clamp(5rem, 15vw, 8rem);
+      font-size: 8rem;
       color: var(--primary);
       animation: bounce 0.5s ease;
     }
@@ -113,13 +114,6 @@
       box-shadow: 0 6px 12px rgba(0, 200, 83, 0.4);
     }
     
-    .footer {
-      margin-top: 2rem;
-      color: #aaa;
-      font-size: 0.8rem;
-      text-align: center;
-    }
-    
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -129,6 +123,13 @@
       0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
       40% {transform: translateY(-30px);}
       60% {transform: translateY(-15px);}
+    }
+    
+    .footer {
+      position: fixed;
+      bottom: 20px;
+      color: #aaa;
+      font-size: 0.8rem;
     }
   </style>
 </head>
@@ -154,6 +155,7 @@
     function accesoPermitido() {
       const resultContainer = document.getElementById("result-container");
       resultContainer.style.display = "flex";
+      document.getElementById("scan-again").style.display = "block";
     }
 
     function restartScanner() {
@@ -163,18 +165,14 @@
 
     function startScanner() {
       qrScanner = new Html5Qrcode("reader");
-      
-      // Calculamos el tamaño del qrbox para que coincida con el borde verde
-      const readerWidth = document.getElementById("reader").offsetWidth;
-      const qrboxSize = readerWidth - 8; // Restamos 8px por el borde (4px cada lado)
-      
+      // Aumentamos el tamaño del área de escaneo
       const config = { 
-        fps: 10,
-        qrbox: {
-          width: qrboxSize,
-          height: qrboxSize // Cuadrado perfecto
+        fps: 10, 
+        qrbox: { 
+          width: 350,  // Ancho más grande
+          height: 250 // Alto más grande
         },
-        aspectRatio: 1.0
+        aspectRatio: 1.0 // Relación de aspecto rectangular
       };
 
       qrScanner.start(
@@ -185,21 +183,15 @@
           qrScanner.stop();
         },
         (error) => {
-          console.log("Error de escaneo:", error);
+          // Ignorar errores de escaneo
         }
       ).catch(err => {
         console.error("Error al iniciar escáner:", err);
-        alert("No se pudo acceder a la cámara. Permite los permisos.");
       });
     }
 
-    // Iniciar al cargar y al redimensionar
+    // Iniciar el escáner al cargar la página
     window.onload = startScanner;
-    window.addEventListener('resize', () => {
-      if (qrScanner && document.getElementById("result-container").style.display !== "flex") {
-        qrScanner.stop().then(() => startScanner());
-      }
-    });
   </script>
 </body>
 </html>
