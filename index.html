@@ -16,34 +16,35 @@
       font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       background-color: #f8f9fa;
-      overflow: hidden;
     }
     
     .header {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
+      padding: 0 20px;
     }
     
     h1 {
       color: #333;
       font-weight: 300;
-      letter-spacing: 1px;
+      font-size: clamp(1.5rem, 4vw, 2rem); /* Texto responsive */
     }
     
     p {
       color: #666;
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
     }
     
     #reader {
       width: 90%;
       max-width: 500px;
-      height: 400px;
+      aspect-ratio: 1; /* FORZAMOS RELACIÓN CUADRADA */
       margin: 0 auto;
       border-radius: 16px;
       overflow: hidden;
@@ -51,15 +52,15 @@
       position: relative;
     }
     
-    /* Estilo para el cuadro de escaneo */
+    /* Cuadro de escaneo CENTRADO y CUADRADO */
     #reader::after {
       content: "";
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80%;
-      height: 60%;
+      width: 70%;
+      height: 70%; /* Mismo alto/ancho = cuadrado */
       border: 4px solid var(--primary);
       border-radius: 8px;
       box-sizing: border-box;
@@ -82,7 +83,7 @@
     }
     
     #result {
-      font-size: 5rem;
+      font-size: clamp(3rem, 10vw, 5rem); /* Texto responsive */
       font-weight: bold;
       color: var(--primary);
       text-align: center;
@@ -90,7 +91,7 @@
     }
     
     .checkmark {
-      font-size: 8rem;
+      font-size: clamp(5rem, 15vw, 8rem); /* Icono responsive */
       color: var(--primary);
       animation: bounce 0.5s ease;
     }
@@ -126,10 +127,11 @@
     }
     
     .footer {
-      position: fixed;
-      bottom: 20px;
+      margin-top: 2rem;
       color: #aaa;
       font-size: 0.8rem;
+      text-align: center;
+      padding: 0 20px;
     }
   </style>
 </head>
@@ -165,33 +167,42 @@
 
     function startScanner() {
       qrScanner = new Html5Qrcode("reader");
-      // Aumentamos el tamaño del área de escaneo
+      
+      // Configuración OPTIMIZADA para tablets/móviles
       const config = { 
         fps: 10, 
         qrbox: { 
-          width: 350,  // Ancho más grande
-          height: 250 // Alto más grande
+          width: 250,  // Tamaño fijo (se adapta al cuadro visual)
+          height: 250 // Cuadrado perfecto
         },
-        aspectRatio: 1.0 // Relación de aspecto rectangular
+        aspectRatio: 1.0 // Relación 1:1 (cuadrado)
       };
 
       qrScanner.start(
         { facingMode: "environment" },
         config,
         (decodedText) => {
+          // Aquí puedes validar el contenido del QR si es necesario
+          // Ejemplo: if (decodedText === "CODIGO_VALIDO") { ... }
           accesoPermitido();
           qrScanner.stop();
         },
         (error) => {
-          // Ignorar errores de escaneo
+          console.log("Error de escaneo:", error); // Opcional: mostrar feedback al usuario
         }
       ).catch(err => {
         console.error("Error al iniciar escáner:", err);
+        alert("No se pudo acceder a la cámara. Asegúrate de permitir los permisos.");
       });
     }
 
-    // Iniciar el escáner al cargar la página
+    // Iniciar al cargar + redimensionar para tablets
     window.onload = startScanner;
+    window.addEventListener('resize', () => {
+      if (qrScanner && !document.getElementById("result-container").style.display === "flex") {
+        qrScanner.stop().then(() => startScanner());
+      }
+    });
   </script>
 </body>
-</html>
+</html>s
